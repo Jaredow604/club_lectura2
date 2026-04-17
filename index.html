@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BiblioRed - Tu Comunidad Literaria</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="main-header">
+        <div class="logo" onclick="navegarA('inicio')" style="cursor: pointer;">
+            <i class="fas fa-book-open"></i> <span>BiblioRed</span>
+        </div>
+        <div class="search-bar">
+            <input type="text" id="input-busqueda" placeholder="Buscar club, libro o autor...">
+            <button onclick="ejecutarBusqueda()"><i class="fas fa-search"></i></button>
+        </div>
+        <nav class="nav-menu">
+            <a href="#" onclick="navegarA('inicio')"><i class="fas fa-home"></i> Inicio</a>
+            <a href="#" onclick="navegarA('mapa')"><i class="fas fa-map-marked-alt"></i> Mapa</a>
+            <a href="#" onclick="navegarA('comunidad')"><i class="fas fa-users"></i> Comunidad</a>
+            <a href="#" onclick="navegarA('espacios')"><i class="fas fa-coffee"></i> Espacios</a>
+            <a href="#" onclick="navegarA('autores')"><i class="fas fa-pen-nib"></i> Autores</a>
+            <a href="#" onclick="navegarA('libros')"><i class="fas fa-book"></i> Libros</a>
+            <a href="#" onclick="navegarA('clubes')"><i class="fas fa-users-cog"></i> Clubes</a>
+        </nav>
+        <div class="header-right">
+            <div id="user-status">
+                <button onclick="abrirModal('auth-modal')" class="btn-login-header">Iniciar Sesión</button>
+            </div>
+        </div>
+    </header>
+
+    <div id="auth-modal" class="auth-overlay">
+        <div class="auth-box">
+            <span class="close-modal" onclick="cerrarModal('auth-modal')">×</span>
+            <h2>Mi Cuenta</h2>
+            <form id="form-login">
+                <div class="form-group">
+                    <label>Nombre de Usuario</label>
+                    <input type="text" id="login-user" placeholder="Ej: juanlector" required>
+                </div>
+                <div class="form-group">
+                    <label>Contraseña</label>
+                    <input type="password" id="login-pass" placeholder="La contraseña es 123" required>
+                </div>
+                <p id="login-error" style="color: red; font-size: 0.85rem; display: none;">Usuario o contraseña incorrectos.</p>
+                <button type="submit" class="btn-submit">Entrar a BiblioRed</button>
+            </form>
+            
+            <p style="text-align: center; font-size: 0.9rem; margin-top: 15px;">¿No tienes cuenta? <a href="#" onclick="cerrarModal('auth-modal'); abrirModal('register-modal');" style="color: var(--accent-orange); font-weight: bold; text-decoration: none;">Regístrate</a></p>
+            
+            <div style="margin-top: 15px; font-size: 0.8rem; color: #666; text-align: left; background: #f9f9f9; padding: 10px; border-radius: 5px;">
+                <strong>Usuarios de prueba (Contraseña: 123):</strong><br>
+                • juanlector (Lector)<br>
+                • anaescritora (Autor)<br>
+                • carlosorg (Organizador)<br>
+                • cafeblanca (Sede)
+            </div>
+        </div>
+    </div>
+
+    <div id="register-modal" class="auth-overlay">
+        <div class="auth-box" style="width: 500px; max-width: 95%;">
+            <span class="close-modal" onclick="cerrarModal('register-modal')">×</span>
+            <h2>Registro de Usuario</h2>
+            <form id="form-registro">
+                <div class="form-group">
+                    <label>Selecciona tu Rol</label>
+                    <select id="reg-rol" onchange="cambiarFormularioRegistro()" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none;">
+                        <option value="">-- Elige un rol --</option>
+                        <option value="usuario">Usuario</option>
+                        <option value="organizador">Organizador</option>
+                        <option value="escritor">Escritor</option>
+                        <option value="sede">Sede</option>
+                    </select>
+                </div>
+
+                <!-- Campos Comunes (Ocultos temporalmente por JS) -->
+                <div id="reg-campos-comunes" style="display: none;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Nombre de Usuario (Para Iniciar Sesión)</label>
+                            <input type="text" id="reg-user" required>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label>Contraseña</label>
+                            <input type="password" id="reg-pass" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Campos Dinámicos -->
+                <div id="reg-campos-dinamicos" style="margin-top: 15px; text-align: left;">
+                    <p style="font-size: 0.85rem; color: #666; text-align:center;">Por favor, selecciona un rol para continuar.</p>
+                </div>
+
+                <button type="submit" class="btn-submit" id="btn-submit-reg" style="display:none; margin-top: 20px;">Crear Cuenta</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="edit-profile-modal" class="auth-overlay">
+        <div class="auth-box" style="width: 500px; max-width: 95%;">
+            <span class="close-modal" onclick="cerrarModal('edit-profile-modal')">×</span>
+            <h2 style="color: #333; margin-bottom: 25px;">Mi Perfil</h2>
+            
+            <form id="form-edit-profile">
+                <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 30px;">
+                    <img id="preview-foto" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>" style="width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--accent-orange); object-fit: cover; background: #eee;">
+                    <input type="file" id="input-foto" style="display: none;" accept="image/*">
+                    <button type="button" onclick="document.getElementById('input-foto').click()" style="background: white; border: 1px solid var(--accent-orange); color: var(--accent-orange); padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.9rem;">Subir nueva foto</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: left; margin-bottom: 25px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="color: #111;">Nombre de Usuario</label>
+                        <input type="text" id="edit-username" readonly style="background-color: #f4f4f4; color: #666; cursor: not-allowed; border: 1px solid #ddd;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="color: #111;">Nombre Completo</label>
+                        <input type="text" id="edit-nombre" style="border: 1px solid #ddd;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="color: #111;">Correo Electrónico</label>
+                        <input type="email" id="edit-correo" style="border: 1px solid #ddd;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="color: #111;">Número de Teléfono</label>
+                        <input type="text" id="edit-telefono" placeholder="Ej: 555-001" style="border: 1px solid #ddd;">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" style="background-color: var(--header-bg); border-radius: 5px; font-size: 1rem; padding: 12px; margin-top: 5px;">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="notifications-modal" class="auth-overlay">
+        <div class="auth-box" style="width: 450px; max-width: 95%; padding: 25px;">
+            <span class="close-modal" onclick="cerrarModal('notifications-modal')">×</span>
+            <h2 style="color: #333; margin-bottom: 20px; text-align: left; border-bottom: 2px solid #eee; padding-bottom: 10px;">Notificaciones</h2>
+            <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                <div onclick="leerNotificacion('¡Solicitud Aceptada!', 'El organizador ha aceptado tu solicitud para unirte al Club Realismo Mágico.', this)" style="display: flex; gap: 15px; padding: 15px 10px; border-bottom: 1px solid #eee; align-items: flex-start; cursor: pointer; transition: 0.3s; background: #f0fdf4; border-radius: 8px; margin-bottom: 5px;">
+                    <div class="icono-bg" style="background: #e8f5e9; color: #27ae60; padding: 12px; border-radius: 50%; min-width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; transition: 0.3s;">
+                        <i class="fas fa-check-circle" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <p style="margin: 0 0 5px 0; font-size: 0.95rem;"><strong>¡Solicitud Aceptada!</strong></p>
+                        <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #555;">El organizador ha aceptado tu solicitud...</p>
+                    </div>
+                </div>
+                <div onclick="leerNotificacion('Recordatorio de Evento', 'Mañana es la reunión presencial en Café La Blanca.', this)" style="display: flex; gap: 15px; padding: 15px 10px; align-items: flex-start; cursor: pointer; transition: 0.3s; background: #fffbf0; border-radius: 8px;">
+                    <div class="icono-bg" style="background: #fff3e0; color: #f39c12; padding: 12px; border-radius: 50%; min-width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; box-sizing: border-box; transition: 0.3s;">
+                        <i class="fas fa-calendar-alt" style="font-size: 1.2rem;"></i>
+                    </div>
+                    <div style="flex: 1;">
+                        <p style="margin: 0 0 5px 0; font-size: 0.95rem;"><strong>Recordatorio de Evento</strong></p>
+                        <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #555;">Mañana es la reunión presencial en Café...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notif-detail-modal" class="auth-overlay">
+        <div class="auth-box" style="width: 400px; max-width: 95%; text-align: left;">
+            <h3 id="notif-detail-title" style="color: var(--header-bg); margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;"></h3>
+            <p id="notif-detail-body" style="font-size: 0.95rem; line-height: 1.6; color: #444; margin-top: 20px;"></p>
+            <div style="display: flex; justify-content: flex-end; margin-top: 25px;">
+                <button onclick="cerrarModal('notif-detail-modal'); abrirModal('notifications-modal');" class="btn-outline" style="margin: 0; width: auto; padding: 8px 15px;">Volver</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="messages-modal" class="auth-overlay">
+        <div class="auth-box" style="width: 450px; max-width: 95%; padding: 25px;">
+            <span class="close-modal" onclick="cerrarModal('messages-modal')">×</span>
+            <h2 style="color: #333; margin-top: 0; margin-bottom: 20px; text-align: left; border-bottom: 2px solid #eee; padding-bottom: 10px;">Mensajes</h2>
+            <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                <div onclick="abrirChat('Carlos Ruiz', this)" style="display: flex; gap: 15px; padding: 12px; border-radius: 8px; align-items: center; cursor: pointer; background: #fff5f5; margin-bottom: 10px;">
+                    <img src="https://via.placeholder.com/50" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                    <div style="flex: 1;">
+                        <p style="margin: 0; font-size: 0.95rem;"><strong>Carlos Ruiz</strong></p>
+                        <p style="margin: 3px 0 0 0; font-size: 0.85rem; color: #333; font-weight: bold;">Hola, ¿ya pudiste revisar el capít...</p>
+                    </div>
+                    <span class="chat-badge" style="background: #e74c3c; color: white; border-radius: 50%; padding: 2px 8px; font-size: 0.75rem; font-weight: bold;">1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="chat-room-modal" class="auth-overlay">
+        <div class="auth-box" style="width: 450px; max-width: 95%; padding: 0; overflow: hidden; display: flex; flex-direction: column; height: 550px; background: #efeae2;">
+            <div style="background: var(--header-bg); color: white; padding: 15px; display: flex; align-items: center; gap: 15px;">
+                <i class="fas fa-arrow-left" style="cursor: pointer; font-size: 1.2rem;" onclick="cerrarModal('chat-room-modal'); abrirModal('messages-modal');"></i>
+                <h3 id="chat-room-title" style="margin: 0; font-size: 1.1rem;">Contacto</h3>
+            </div>
+            <div id="chat-room-body" style="flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px;">
+                <div style="align-self: flex-start; background: white; padding: 10px 15px; border-radius: 0 15px 15px 15px; max-width: 80%; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                    <p style="margin: 0; font-size: 0.95rem; color: #333;">Hola, ¿ya pudiste revisar el capítulo de esta semana?</p>
+                </div>
+            </div>
+            <div style="padding: 15px; background: white; display: flex; gap: 10px; align-items: center;">
+                <input type="text" id="chat-input" placeholder="Escribe un mensaje..." style="flex: 1; padding: 12px 15px; border: 1px solid #ddd; border-radius: 25px; outline: none;">
+                <button onclick="enviarMensajeChat()" style="background: var(--accent-orange); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; cursor: pointer;"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-espacio-detalles" class="auth-overlay">
+        <div class="auth-box" style="width: 600px; max-width: 95%; text-align: left; padding: 0; overflow: hidden;">
+            <img src="https://via.placeholder.com/600x200?text=Cafeteria" style="width: 100%; height: 200px; object-fit: cover; display: block;">
+            <div style="padding: 25px;">
+                <span class="close-modal" onclick="cerrarModal('modal-espacio-detalles')" style="top: 10px; right: 15px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">×</span>
+                <h2 style="color: var(--header-bg); margin-top: 0; margin-bottom: 5px;">Café La Blanca</h2>
+                <p style="color: #666; margin-bottom: 20px;"><i class="fas fa-map-marker-alt"></i> Av. 5 de Mayo #12, Zona Centro</p>
+                
+                <h4 style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">Sobre el espacio</h4>
+                <p style="font-size: 0.9rem; color: #555; line-height: 1.5;">Fundado en 1915, este icónico café ha sido lugar de reunión para intelectuales y escritores. Ofrecemos una zona aislada especial para clubes de lectura con excelente iluminación, enchufes y conexión a internet.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; background: #f9f9f9; padding: 15px; border-radius: 8px;">
+                    <div><i class="fas fa-users" style="color: var(--accent-orange);"></i> <strong>Aforo Max:</strong> 30</div>
+                    <div><i class="fas fa-wifi" style="color: var(--accent-orange);"></i> <strong>Wi-Fi:</strong> Sí</div>
+                    <div><i class="fas fa-coffee" style="color: var(--accent-orange);"></i> <strong>Consumo Mínimo:</strong> 1 Bebida</div>
+                    <div><i class="fas fa-wheelchair" style="color: var(--accent-orange);"></i> <strong>Accesibilidad:</strong> Sí</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-espacio-eventos" class="auth-overlay">
+        <div class="auth-box" style="width: 500px; max-width: 95%; text-align: left; padding: 25px;">
+            <span class="close-modal" onclick="cerrarModal('modal-espacio-eventos')">×</span>
+            <h2 style="color: var(--header-bg); margin-top: 0; border-bottom: 2px solid #eee; padding-bottom: 10px;">Eventos en Café La Blanca</h2>
+            
+            <div style="margin-top: 20px;">
+                <div style="border-left: 4px solid var(--accent-orange); padding-left: 15px; margin-bottom: 20px; background: #fafafa; padding: 15px; border-radius: 4px;">
+                    <h4 style="margin: 0 0 5px 0;">Club Realismo Mágico</h4>
+                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #555;"><i class="fas fa-calendar-alt"></i> Todos los Viernes | 18:00 hrs</p>
+                    <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #555;"><i class="fas fa-book"></i> Leyendo: Cien Años de Soledad</p>
+                    <button class="btn-outline" style="margin: 0; padding: 5px 10px; font-size: 0.8rem; width: auto;" onclick="mostrarAlerta('Abriendo información detallada del club...')">Ver detalles del club</button>
+                </div>
+
+                <div style="border-left: 4px solid #3498db; padding-left: 15px; margin-bottom: 20px; background: #fafafa; padding: 15px; border-radius: 4px;">
+                    <h4 style="margin: 0 0 5px 0;">Poesía Urbana</h4>
+                    <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #555;"><i class="fas fa-calendar-alt"></i> Domingos | 10:00 hrs</p>
+                    <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #555;"><i class="fas fa-book"></i> Lectura libre</p>
+                    <button class="btn-outline" style="margin: 0; padding: 5px 10px; font-size: 0.8rem; width: auto;" onclick="mostrarAlerta('Abriendo información detallada del club...')">Ver detalles del club</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-autor-obras" class="auth-overlay">
+        <div class="auth-box" style="width: 550px; max-width: 95%; text-align: left; padding: 25px;">
+            <span class="close-modal" onclick="cerrarModal('modal-autor-obras')">×</span>
+            <div style="display: flex; gap: 15px; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 15px; margin-bottom: 20px;">
+                <img src="https://via.placeholder.com/60" style="border-radius: 50%; width: 60px; height: 60px; object-fit: cover;">
+                <div>
+                    <h2 style="color: var(--header-bg); margin: 0;">Obras del Autor</h2>
+                    <p style="margin: 0; font-size: 0.9rem; color: #666;">Selecciona un libro para ver más detalles.</p>
+                </div>
+            </div>
+            
+            <div style="max-height: 400px; overflow-y: auto;">
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; border-bottom: 1px dashed #eee; padding-bottom: 15px;">
+                    <img src="https://via.placeholder.com/80x120?text=Obra+1" style="border-radius: 4px;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0;">El Eco de la Ciudad</h4>
+                        <div style="display: flex; gap: 10px; font-size: 0.8rem; color: #666; margin-bottom: 5px;">
+                            <span><i class="fas fa-star" style="color: #f1c40f;"></i> 4.8</span>
+                            <span>| Thriller</span>
+                        </div>
+                        <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #555;">Un thriller psicológico que explora los secretos de los habitantes de un edificio...</p>
+                        <button class="btn-outline" style="margin: 0; padding: 5px 10px; font-size: 0.8rem; width: auto;" onclick="cerrarModal('modal-autor-obras'); navegarA('libros');">Ir al libro</button>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 15px; margin-bottom: 10px;">
+                    <img src="https://via.placeholder.com/80x120?text=Obra+2" style="border-radius: 4px;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0;">Susurros del Pasado</h4>
+                        <div style="display: flex; gap: 10px; font-size: 0.8rem; color: #666; margin-bottom: 5px;">
+                            <span><i class="fas fa-star" style="color: #f1c40f;"></i> 4.5</span>
+                            <span>| Misterio</span>
+                        </div>
+                        <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #555;">La historia de una carta perdida que revela un crimen sin resolver...</p>
+                        <button class="btn-outline" style="margin: 0; padding: 5px 10px; font-size: 0.8rem; width: auto;" onclick="cerrarModal('modal-autor-obras'); navegarA('libros');">Ir al libro</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <main class="container">
+        
+        <div id="global-inicio" class="dashboard-view active">
+            <div class="map-box"></div> 
+            
+            <h2 class="section-title">Títulos Más Recientes</h2>
+            <div class="global-grid">
+                <div class="panel-box" style="padding: 15px; display: flex; gap: 15px; align-items: center; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/80x120?text=Libro+Nuevo" style="border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0;">La Sombra del Viento</h4>
+                        <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #666;">Carlos Ruiz Zafón</p>
+                        <span style="font-size: 0.75rem; background: var(--accent-orange); color: white; padding: 3px 6px; border-radius: 10px;">Novedad</span>
+                    </div>
+                    <button class="btn-outline" style="width: auto; margin: 0; padding: 5px 10px; font-size: 0.8rem;" onclick="navegarA('libros')">Ver más</button>
+                </div>
+                <div class="panel-box" style="padding: 15px; display: flex; gap: 15px; align-items: center; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/80x120?text=Ensayo" style="border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 5px 0;">Sapiens</h4>
+                        <p style="margin: 0 0 5px 0; font-size: 0.85rem; color: #666;">Yuval Noah Harari</p>
+                        <span style="font-size: 0.75rem; background: var(--accent-orange); color: white; padding: 3px 6px; border-radius: 10px;">Novedad</span>
+                    </div>
+                    <button class="btn-outline" style="width: auto; margin: 0; padding: 5px 10px; font-size: 0.8rem;" onclick="navegarA('libros')">Ver más</button>
+                </div>
+            </div>
+
+            <h2 class="section-title">Clubes de Lectura Más Conocidos</h2>
+            <div class="global-grid">
+                <div class="club-card" style="width: 100%; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/400x200?text=Literatura+Mexicana" alt="Libro">
+                    <div class="card-body">
+                        <h4>Club Realismo Mágico</h4>
+                        <p>Org: Elena Poniatowska</p>
+                        <p><i class="fas fa-map-marker-alt"></i> Café La Blanca</p>
+                        <span class="spots">3/10 lugares</span>
+                    </div>
+                </div>
+                <div class="club-card" style="width: 100%; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/400x200?text=Ciencia+Ficcion" alt="Libro">
+                    <div class="card-body">
+                        <h4>Ciencia Ficción 101</h4>
+                        <p>Org: Carlos Ruiz</p>
+                        <p><i class="fas fa-video"></i> Online (Zoom)</p>
+                        <span class="spots">5/20 lugares</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="global-mapa" class="dashboard-view">
+            <h2 class="section-title">Explorar Mapa de Sedes</h2>
+            <p style="color: #666; margin-bottom: 20px;">Encuentra cafeterías, librerías y espacios culturales cerca de ti donde se reúnen nuestros clubes.</p>
+            <div style="width: 100%; height: 500px; border-radius: 12px; overflow: hidden; box-shadow: var(--card-shadow); border: 2px solid #eee;">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d14945.0!2d-103.35!3d20.67!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1ses-419!2smx!4v1680000000000!5m2!1ses-419!2smx" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+
+        <div id="global-comunidad" class="dashboard-view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin: 0;">Comunidad BiblioRed</h2>
+            </div>
+            
+            <div class="global-grid">
+                <div class="panel-box" style="text-align: center; padding: 25px 15px; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/80" style="border-radius: 50%; width: 80px; height: 80px; object-fit: cover; border: 3px solid #3498db; margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 5px 0; justify-content: center; font-size: 1.1rem; color: #333;">Juan Pérez</h3>
+                    <p style="color: #666; font-size: 0.85rem; margin: 0 0 15px 0; text-transform: uppercase; font-weight: bold;">Lector</p>
+                    <p style="font-size: 0.9rem; color: #555; margin-bottom: 20px;">"Amante de la ciencia ficción y la novela histórica."</p>
+                    <button class="btn-outline req-auth" style="margin: 0; padding: 8px;" onclick="toggleSeguir(this, 'Conectar')"><i class="fas fa-user-plus"></i> Conectar</button>
+                </div>
+
+                <div class="panel-box" style="text-align: center; padding: 25px 15px; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/80" style="border-radius: 50%; width: 80px; height: 80px; object-fit: cover; border: 3px solid #9b59b6; margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 5px 0; justify-content: center; font-size: 1.1rem; color: #333;">Ana Gómez</h3>
+                    <p style="color: #666; font-size: 0.85rem; margin: 0 0 15px 0; text-transform: uppercase; font-weight: bold;">Escritora</p>
+                    <p style="font-size: 0.9rem; color: #555; margin-bottom: 20px;">"Escribiendo mi tercera novela. Me encanta interactuar con mis lectores."</p>
+                    <button class="btn-outline req-auth" style="margin: 0; padding: 8px;" onclick="toggleSeguir(this, 'Seguir')"><i class="fas fa-user-plus"></i> Seguir</button>
+                </div>
+
+                <div class="panel-box" style="text-align: center; padding: 25px 15px; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/80" style="border-radius: 50%; width: 80px; height: 80px; object-fit: cover; border: 3px solid #e67e22; margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 5px 0; justify-content: center; font-size: 1.1rem; color: #333;">Carlos Ruiz</h3>
+                    <p style="color: #666; font-size: 0.85rem; margin: 0 0 15px 0; text-transform: uppercase; font-weight: bold;">Organizador</p>
+                    <p style="font-size: 0.9rem; color: #555; margin-bottom: 20px;">"Apasionado por crear espacios de debate."</p>
+                    <button class="btn-outline req-auth" style="margin: 0; padding: 8px;" onclick="toggleSeguir(this, 'Conectar')"><i class="fas fa-user-plus"></i> Conectar</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="global-espacios" class="dashboard-view">
+            <h2 class="section-title">Espacios y Sedes Culturales</h2>
+            <div class="global-grid">
+                
+                <div class="panel-box" style="padding: 0; overflow: hidden; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/400x200?text=Cafeteria" style="width: 100%; height: 180px; object-fit: cover;">
+                    <div style="padding: 20px;">
+                        <h3 style="margin: 0 0 10px 0; color: var(--header-bg); font-size: 1.2rem;">Café La Blanca</h3>
+                        <p style="margin: 5px 0; font-size: 0.9rem;"><i class="fas fa-map-marker-alt" style="width: 20px;"></i> Zona Centro</p>
+                        <p style="margin: 5px 0; font-size: 0.9rem;"><i class="fas fa-users" style="width: 20px;"></i> Capacidad: 30 personas</p>
+                        <p style="margin: 15px 0; font-size: 0.9rem; color: #666;">El ambiente perfecto para acompañar un buen libro con un excelente café.</p>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn-submit" style="margin: 0; padding: 8px; flex: 1;" onclick="abrirModal('modal-espacio-eventos')">Ver Eventos</button>
+                            <button class="btn-outline" style="margin: 0; padding: 8px; flex: 1;" onclick="abrirModal('modal-espacio-detalles')">Detalles</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-box" style="padding: 0; overflow: hidden; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/400x200?text=Libreria" style="width: 100%; height: 180px; object-fit: cover;">
+                    <div style="padding: 20px;">
+                        <h3 style="margin: 0 0 10px 0; color: var(--header-bg); font-size: 1.2rem;">Foro El Aleph</h3>
+                        <p style="margin: 5px 0; font-size: 0.9rem;"><i class="fas fa-map-marker-alt" style="width: 20px;"></i> Distrito Cultural</p>
+                        <p style="margin: 5px 0; font-size: 0.9rem;"><i class="fas fa-users" style="width: 20px;"></i> Capacidad: 50 personas</p>
+                        <p style="margin: 15px 0; font-size: 0.9rem; color: #666;">Un espacio amplio con auditorio, ideal para firmas de libros.</p>
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            <button class="btn-submit" style="margin: 0; padding: 8px; flex: 1;" onclick="abrirModal('modal-espacio-eventos')">Ver Eventos</button>
+                            <button class="btn-outline" style="margin: 0; padding: 8px; flex: 1;" onclick="abrirModal('modal-espacio-detalles')">Detalles</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="global-autores" class="dashboard-view">
+            <h2 class="section-title">Autores Destacados</h2>
+            <div class="global-grid">
+                <div class="panel-box" style="display: flex; gap: 20px; align-items: center; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/100" style="border-radius: 50%; width: 90px; height: 90px; object-fit: cover;">
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: var(--header-bg);">Elena Poniatowska</h3>
+                        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Periodista y escritora mexicana.</p>
+                        <button class="btn-outline" style="margin: 0; padding: 5px 15px; font-size: 0.8rem; width: auto;" onclick="abrirModal('modal-autor-obras')">Ver Obras</button>
+                    </div>
+                </div>
+                <div class="panel-box" style="display: flex; gap: 20px; align-items: center; margin-bottom: 0;">
+                    <img src="https://via.placeholder.com/100" style="border-radius: 50%; width: 90px; height: 90px; object-fit: cover;">
+                    <div>
+                        <h3 style="margin: 0 0 5px 0; color: var(--header-bg);">Ana Gómez</h3>
+                        <p style="margin: 0 0 10px 0; font-size: 0.9rem; color: #666;">Autora revelación de novela contemporánea.</p>
+                        <button class="btn-outline" style="margin: 0; padding: 5px 15px; font-size: 0.8rem; width: auto;" onclick="abrirModal('modal-autor-obras')">Ver Obras</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="global-libros" class="dashboard-view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin: 0;">Biblioteca Virtual</h2>
+                <select style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none;">
+                    <option>Mejor valorados</option>
+                    <option>Más leídos</option>
+                    <option>Novedades</option>
+                </select>
+            </div>
+
+            <div class="global-grid">
+                
+                <div class="panel-box" style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 0; padding: 20px;">
+                    <img src="https://via.placeholder.com/150x220?text=Cien+Años" style="width: 120px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 5px 0; color: #333; font-size: 1.2rem;">Cien Años de Soledad</h3>
+                        <p style="margin: 0 0 10px 0; color: var(--accent-orange); font-weight: bold; font-size: 0.95rem;">Gabriel García Márquez</p>
+                        
+                        <div style="display: flex; gap: 15px; font-size: 0.85rem; color: #666; margin-bottom: 10px;">
+                            <span><i class="fas fa-book-open"></i> 417 Páginas</span>
+                            <span><i class="fas fa-star" style="color: #f1c40f;"></i> 4.9/5</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: #555; line-height: 1.4; margin-bottom: 15px;">La novela narra la historia de la familia Buendía a lo largo de siete generaciones...</p>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 15px; align-items: center; flex-wrap: wrap;">
+                            <button class="btn-outline req-auth" style="margin: 0; padding: 8px; font-size: 0.85rem; width: auto;" onclick="mostrarAlerta('El libro ha sido añadido a tu lista de lectura.')"><i class="fas fa-plus"></i> Añadir a mi lista</button>
+                            <span class="req-auth" style="color: #ddd;">|</span>
+                            <button class="btn-submit" style="margin: 0; padding: 8px; font-size: 0.85rem; width: auto; background-color: #27ae60;" onclick="navegarA('clubes')"><i class="fas fa-users"></i> Ver Clubes</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-box" style="display: flex; gap: 20px; align-items: flex-start; margin-bottom: 0; padding: 20px;">
+                    <img src="https://via.placeholder.com/150x220?text=El+Eco" style="width: 120px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.15);">
+                    <div style="flex: 1;">
+                        <h3 style="margin: 0 0 5px 0; color: #333; font-size: 1.2rem;">El Eco de la Ciudad</h3>
+                        <p style="margin: 0 0 10px 0; color: var(--accent-orange); font-weight: bold; font-size: 0.95rem;">Ana Gómez</p>
+                        
+                        <div style="display: flex; gap: 15px; font-size: 0.85rem; color: #666; margin-bottom: 10px;">
+                            <span><i class="fas fa-book-open"></i> 280 Páginas</span>
+                            <span><i class="fas fa-star" style="color: #f1c40f;"></i> 4.8/5</span>
+                        </div>
+                        <p style="font-size: 0.85rem; color: #555; line-height: 1.4; margin-bottom: 15px;">Un thriller psicológico que explora los secretos mejor guardados de los habitantes...</p>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 15px; align-items: center; flex-wrap: wrap;">
+                            <button class="btn-outline req-auth" style="margin: 0; padding: 8px; font-size: 0.85rem; width: auto;" onclick="mostrarAlerta('El libro ha sido añadido a tu lista de lectura.')"><i class="fas fa-plus"></i> Añadir a mi lista</button>
+                            <span class="req-auth" style="color: #ddd;">|</span>
+                            <span class="req-auth" style="font-size: 0.85rem; color: #666;"><i class="fas fa-info-circle"></i> Aún no hay club.</span>
+                            <button class="btn-outline req-auth" style="margin: 0; padding: 6px 10px; font-size: 0.8rem; width: auto; border-color: #ccc; color: #666;" onclick="mostrarAlerta('Tu sugerencia ha sido enviada a los Organizadores.')"><i class="fas fa-bullhorn"></i> Sugerir Club</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="global-clubes" class="dashboard-view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin: 0;">Directorio de Clubes</h2>
+                <div style="display: flex; gap: 10px;">
+                    <select id="filtro-clubes" style="padding: 10px; border: 1px solid #ddd; border-radius: 5px; outline: none;">
+                        <option value="todos">Todos los clubes</option>
+                        <option value="online">Online</option>
+                        <option value="presencial">Presencial</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="global-grid" id="lista-clubes-container">
+                <!-- Se llenará con JS dependiendo del estado de autenticación -->
+            </div>
+        </div>
+
+
+        <div id="vista-lector" class="dashboard-view">
+            <h2 class="section-title">Mi Biblioteca y Comunidad</h2>
+            <div class="dashboard-grid">
+                
+                <div class="panel-box">
+                    <h3><i class="fas fa-book-reader"></i> Lectura Actual</h3>
+                    <p><strong>Cien Años de Soledad</strong> - Gabriel García Márquez</p>
+                    <p style="color: #666; font-size: 0.9rem; margin-top: 10px;">Progreso: 45%</p>
+                    <div style="background: #e0e0e0; border-radius: 10px; height: 8px; width: 100%; margin-top: 5px; overflow: hidden;">
+                        <div style="background: var(--accent-orange); width: 45%; height: 100%;"></div>
+                    </div>
+                </div>
+
+                <div class="panel-box">
+                    <h3><i class="fas fa-trophy"></i> Mis Estadísticas</h3>
+                    <p style="margin: 8px 0;"><i class="fas fa-book" style="color: var(--accent-orange);"></i> <strong>5</strong> Libros leídos este año</p>
+                    <p style="margin: 8px 0;"><i class="fas fa-comments" style="color: var(--accent-orange);"></i> <strong>12</strong> Participaciones en foros</p>
+                    <p style="margin: 8px 0;"><i class="fas fa-star" style="color: var(--accent-orange);"></i> <strong>2</strong> Reseñas publicadas</p>
+                </div>
+
+                <div class="panel-box" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-users"></i> Clubes en los que participo (Actuales)</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+                        <div style="flex: 1; min-width: 280px; border: 1px solid #eee; padding: 20px; border-radius: 8px; background: #fafafa; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                            <h4 style="margin: 0 0 15px 0; color: var(--header-bg); font-size: 1.1rem;">Club Realismo Mágico</h4>
+                            <p style="margin: 8px 0; font-size: 0.95rem;"><i class="fas fa-book-open" style="width: 20px;"></i> <strong>Leyendo:</strong> Cien Años de Soledad</p>
+                            <p style="margin: 8px 0; font-size: 0.95rem;"><i class="fas fa-calendar-alt" style="width: 20px;"></i> <strong>Horario:</strong> Viernes 18:00 hrs</p>
+                            <p style="margin: 8px 0; font-size: 0.95rem;"><i class="fas fa-map-marker-alt" style="width: 20px;"></i> <strong>Lugar:</strong> Café La Blanca</p>
+                            <button class="btn-outline" style="margin-top: 15px; margin-bottom: 0; padding: 8px;" onclick="mostrarAlerta('Abriendo el foro interno del Club Realismo Mágico...')">Ir al foro del club</button>
+                        </div>
+
+                        <div style="flex: 1; min-width: 280px; border: 1px solid #eee; padding: 20px; border-radius: 8px; background: #fafafa; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                            <h4 style="margin: 0 0 15px 0; color: var(--header-bg); font-size: 1.1rem;">Ciencia Ficción 101</h4>
+                            <p style="margin: 8px 0; font-size: 0.95rem;"><i class="fas fa-book-open" style="width: 20px;"></i> <strong>Leyendo:</strong> Dune</p>
+                            <p style="margin: 8px 0; font-size: 0.95rem;"><i class="fas fa-calendar-alt" style="width: 20px;"></i> <strong>Horario:</strong> Sábados 10:00 hrs</p>
+                            <p style="margin: 8px 0; font-size: 0.95rem;"><i class="fas fa-video" style="width: 20px;"></i> <strong>Lugar:</strong> Online (Zoom)</p>
+                            <button class="btn-outline" style="margin-top: 15px; margin-bottom: 0; padding: 8px;" onclick="mostrarAlerta('Abriendo el foro interno del Club Ciencia Ficción...')">Ir al foro del club</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-box" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-history"></i> Historial de Clubes (Terminados)</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+                        <div style="flex: 1; min-width: 280px; border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: #f9f9f9; opacity: 0.8;">
+                            <h4 style="margin: 0 0 15px 0; color: #555; font-size: 1.1rem;">Misterio y Novela Negra</h4>
+                            <p style="margin: 8px 0; font-size: 0.95rem;"><i class="fas fa-book" style="width: 20px;"></i> <strong>Libro:</strong> El Psicoanalista</p>
+                            <p style="margin: 8px 0; font-size: 0.95rem; color: #27ae60;"><i class="fas fa-check-circle" style="width: 20px;"></i> <strong>Finalizado en:</strong> Diciembre 2025</p>
+                        </div>
+                        <div style="flex: 1; min-width: 280px; border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: #f9f9f9; opacity: 0.8;">
+                            <h4 style="margin: 0 0 15px 0; color: #555; font-size: 1.1rem;">Clásicos Universales</h4>
+                            <p style="margin: 8px 0; font-size: 0.95rem;"><i class="fas fa-book" style="width: 20px;"></i> <strong>Libro:</strong> Orgullo y Prejuicio</p>
+                            <p style="margin: 8px 0; font-size: 0.95rem; color: #27ae60;"><i class="fas fa-check-circle" style="width: 20px;"></i> <strong>Finalizado en:</strong> Octubre 2025</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="vista-autor" class="dashboard-view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin: 0;">Panel de Escritor</h2>
+                <button class="btn-submit" style="width: auto; margin: 0; padding: 10px 20px;" onclick="mostrarAlerta('Abriendo formulario para publicar nueva obra...')"><i class="fas fa-bullhorn"></i> Anunciar Nuevo Libro</button>
+            </div>
+            
+            <div class="dashboard-grid">
+                <div class="panel-box">
+                    <h3><i class="fas fa-chart-line"></i> Mi Trayectoria</h3>
+                    <p style="margin: 8px 0;"><i class="fas fa-book-open" style="color: var(--accent-orange); width: 20px;"></i> <strong>3</strong> Obras publicadas en la red</p>
+                    <p style="margin: 8px 0;"><i class="fas fa-users" style="color: var(--accent-orange); width: 20px;"></i> <strong>12</strong> Eventos totales asistidos</p>
+                    <p style="margin: 8px 0;"><i class="fas fa-star" style="color: #f1c40f; width: 20px;"></i> <strong>4.9</strong> Promedio de reseñas de lectores</p>
+                </div>
+
+                <div class="panel-box" id="tarjeta-solicitud-autor">
+                    <h3><i class="fas fa-bell"></i> Solicitudes Recientes</h3>
+                    <p style="font-size: 0.95rem;">El organizador <strong>Carlos Ruiz</strong> te ha invitado a un club de lectura sobre tu libro "El eco de la ciudad".</p>
+                    <div style="display: flex; gap: 10px; margin-top: 15px;">
+                        <button class="btn-submit" style="margin: 0; padding: 8px; font-size: 0.85rem;" onclick="eliminarTarjeta(this, '¡Has aceptado la invitación! Se ha añadido a tu calendario.')">Aceptar Invitación</button>
+                        <button class="btn-outline" style="margin: 0; padding: 8px; font-size: 0.85rem;" onclick="eliminarTarjeta(this, 'Invitación rechazada y notificada al organizador.')">Rechazar</button>
+                    </div>
+                </div>
+
+                <div class="panel-box" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-calendar-check"></i> Próximos Eventos Confirmados</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+                        <div style="flex: 1; min-width: 280px; border: 1px solid #eee; padding: 20px; border-radius: 8px; background: #fafafa; border-left: 4px solid var(--accent-orange);">
+                            <h4 style="margin: 0 0 10px 0; color: var(--header-bg);">Firma de Libros y Q&A</h4>
+                            <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Obra:</strong> El eco de la ciudad</p>
+                            <p style="margin: 5px 0; font-size: 0.9rem;"><i class="fas fa-calendar-alt"></i> Sábado 24, 17:00 hrs</p>
+                            <p style="margin: 5px 0; font-size: 0.9rem;"><i class="fas fa-map-marker-alt"></i> Librería El Sótano</p>
+                            <span style="display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: bold; margin-top: 10px;">Tu asistencia: Confirmada</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-box" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-history"></i> Historial de Asistencias (Terminados)</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+                        <div style="flex: 1; min-width: 280px; border: 1px solid #ddd; padding: 20px; border-radius: 8px; background: #f9f9f9; opacity: 0.8;">
+                            <h4 style="margin: 0 0 10px 0; color: #555;">Club "Nuevos Talentos"</h4>
+                            <p style="margin: 5px 0; font-size: 0.9rem;">Participación Especial</p>
+                            <p style="margin: 5px 0; font-size: 0.9rem; color: #27ae60;"><i class="fas fa-check-circle"></i> Enero 2026</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="vista-organizador" class="dashboard-view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin: 0;">Panel de Organizador</h2>
+                <button class="btn-submit" style="width: auto; margin: 0; padding: 10px 20px;" onclick="mostrarAlerta('Abriendo herramienta de creación de clubes...')"><i class="fas fa-plus-circle"></i> Crear Nuevo Club</button>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="panel-box">
+                    <h3><i class="fas fa-tasks"></i> Acciones Pendientes</h3>
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li style="padding: 10px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;"><strong>3 nuevos lectores</strong> solicitan unirse a Realismo Mágico.</span>
+                            <button class="btn-outline" style="margin: 0; padding: 4px 8px; font-size: 0.8rem; width: auto;" onclick="eliminarLista(this, 'Usuarios aprobados y añadidos al club.')">Revisar</button>
+                        </li>
+                        <li style="padding: 10px 0; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Confirmar pago de sede Café La Blanca.</span>
+                            <button class="btn-outline" style="margin: 0; padding: 4px 8px; font-size: 0.8rem; width: auto;" onclick="eliminarLista(this, 'Redirigiendo a la pasarela de pago seguro...')">Pagar</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="panel-box">
+                    <h3><i class="fas fa-chart-pie"></i> Resumen General</h3>
+                    <p style="margin: 8px 0;"><i class="fas fa-users" style="color: var(--accent-orange); width: 20px;"></i> <strong>3</strong> Clubes bajo tu gestión</p>
+                    <p style="margin: 8px 0;"><i class="fas fa-user-check" style="color: var(--accent-orange); width: 20px;"></i> <strong>45</strong> Lectores inscritos en total</p>
+                </div>
+
+                <div class="panel-box" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-clipboard-list"></i> Gestión de Clubes (Activos)</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+                        
+                        <div style="flex: 1; min-width: 300px; border: 1px solid #eee; padding: 20px; border-radius: 8px; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+                            <h4 style="margin: 0 0 15px 0; color: var(--header-bg); font-size: 1.2rem; display: flex; justify-content: space-between;">
+                                Club Realismo Mágico 
+                                <span style="font-size: 0.8rem; background: var(--accent-orange); color: white; padding: 2px 8px; border-radius: 12px; font-weight: normal;">Privado</span>
+                            </h4>
+                            <div style="font-size: 0.9rem; margin-bottom: 15px;">
+                                <p style="margin: 5px 0;"><i class="fas fa-calendar-day" style="width: 20px;"></i> Vie 18:00 hrs | <i class="fas fa-users" style="margin-left: 10px;"></i> <strong>8/10</strong> Inscritos</p>
+                            </div>
+                            <div style="background: #f9f9f9; padding: 10px; border-radius: 6px; font-size: 0.85rem;">
+                                <p style="margin: 5px 0;"><strong>Autor Asignado:</strong> Elena Poniatowska</p>
+                                <p style="margin: 5px 0; color: #f39c12;"><i class="fas fa-clock"></i> Asistencia del Autor: <strong>Falta Confirmar</strong></p>
+                                <hr style="border: 0; border-top: 1px solid #ddd; margin: 8px 0;">
+                                <p style="margin: 5px 0;"><strong>Sede:</strong> Café La Blanca</p>
+                                <p style="margin: 5px 0; color: #27ae60;"><i class="fas fa-check-circle"></i> Reserva de Sede: <strong>Confirmada</strong></p>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="btn-outline" style="margin: 0; padding: 8px; font-size: 0.85rem;" onclick="mostrarAlerta('Abriendo opciones de edición para Club Realismo Mágico...')"><i class="fas fa-edit"></i> Editar</button>
+                                <button class="btn-outline" style="margin: 0; padding: 8px; font-size: 0.85rem;" onclick="abrirChat('Club Miembros', null)"><i class="fas fa-envelope"></i> Enviar Mensaje</button>
+                            </div>
+                        </div>
+
+                        <div style="flex: 1; min-width: 300px; border: 1px solid #eee; padding: 20px; border-radius: 8px; background: white; box-shadow: 0 4px 8px rgba(0,0,0,0.05);">
+                            <h4 style="margin: 0 0 15px 0; color: var(--header-bg); font-size: 1.2rem; display: flex; justify-content: space-between;">
+                                Terror a Media Noche
+                                <span style="font-size: 0.8rem; background: #3498db; color: white; padding: 2px 8px; border-radius: 12px; font-weight: normal;">Público</span>
+                            </h4>
+                            <div style="font-size: 0.9rem; margin-bottom: 15px;">
+                                <p style="margin: 5px 0;"><i class="fas fa-calendar-day" style="width: 20px;"></i> Sáb 22:00 hrs | <i class="fas fa-users" style="margin-left: 10px;"></i> <strong>15/20</strong> Inscritos</p>
+                            </div>
+                            <div style="background: #f9f9f9; padding: 10px; border-radius: 6px; font-size: 0.85rem;">
+                                <p style="margin: 5px 0;"><strong>Autor Asignado:</strong> N/A (Club abierto)</p>
+                                <hr style="border: 0; border-top: 1px solid #ddd; margin: 8px 0;">
+                                <p style="margin: 5px 0;"><strong>Sede:</strong> Foro El Aleph</p>
+                                <p style="margin: 5px 0; color: #e74c3c;"><i class="fas fa-exclamation-circle"></i> Reserva de Sede: <strong>Pendiente de Pago</strong></p>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="btn-outline" style="margin: 0; padding: 8px; font-size: 0.85rem;" onclick="mostrarAlerta('Abriendo opciones de edición para Terror a Media Noche...')"><i class="fas fa-edit"></i> Editar</button>
+                                <button class="btn-outline" style="margin: 0; padding: 8px; font-size: 0.85rem;" onclick="abrirChat('Club Miembros', null)"><i class="fas fa-envelope"></i> Enviar Mensaje</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="vista-sede" class="dashboard-view">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 class="section-title" style="margin: 0;">Panel de Espacio Cultural</h2>
+                <button class="btn-submit" style="width: auto; margin: 0; padding: 10px 20px;" onclick="mostrarAlerta('El calendario de disponibilidad ha sido sincronizado exitosamente.')"><i class="fas fa-sync-alt"></i> Actualizar Disponibilidad</button>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="panel-box">
+                    <h3><i class="fas fa-store"></i> Perfil Público de la Sede</h3>
+                    <p style="margin: 8px 0;"><i class="fas fa-chair" style="color: var(--accent-orange); width: 20px;"></i> <strong>Aforo Máximo:</strong> 30 personas</p>
+                    <p style="margin: 8px 0;"><i class="fas fa-wifi" style="color: var(--accent-orange); width: 20px;"></i> <strong>Amenidades:</strong> Wi-Fi, Proyector, Micrófono</p>
+                    <div style="background: #fff3e0; padding: 10px; border-left: 4px solid var(--accent-orange); margin-top: 10px; font-size: 0.9rem;">
+                        <strong>Promoción Activa:</strong> 10% de descuento a clubes de lectura los días Lunes.
+                    </div>
+                </div>
+
+                <div class="panel-box">
+                    <h3><i class="fas fa-envelope-open-text"></i> Solicitudes de Reserva</h3>
+                    <div style="background: #f9f9f9; padding: 15px; border-radius: 5px; border: 1px solid #eee;">
+                        <p style="margin: 0 0 10px 0; font-size: 0.95rem;"><strong>Carlos Ruiz</strong> desea reservar para el "Club Poesía Joven".</p>
+                        <p style="margin: 0 0 10px 0; font-size: 0.85rem; color: #666;"><i class="fas fa-calendar"></i> Miércoles 28, 19:00 hrs (Aprox 12 personas).</p>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="btn-submit" style="margin: 0; padding: 6px; font-size: 0.8rem;" onclick="eliminarTarjeta(this, '¡Has aprobado la reserva para Carlos Ruiz!')">Aprobar</button>
+                            <button class="btn-outline" style="margin: 0; padding: 6px; font-size: 0.8rem;" onclick="mostrarAlerta('Generando documento de cotización detallada...')">Cotizar</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-box" style="grid-column: 1 / -1;">
+                    <h3><i class="fas fa-calendar-alt"></i> Eventos Programados (Próximos)</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px;">
+                        
+                        <div style="flex: 1; min-width: 280px; border: 1px solid #eee; padding: 20px; border-radius: 8px; background: white; border-top: 4px solid #27ae60;">
+                            <h4 style="margin: 0 0 10px 0; color: var(--header-bg); font-size: 1.1rem;">Club Realismo Mágico</h4>
+                            <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Organiza:</strong> Carlos Ruiz</p>
+                            <hr style="border: 0; border-top: 1px dashed #ddd; margin: 10px 0;">
+                            <p style="margin: 5px 0; font-size: 0.9rem;"><i class="fas fa-clock" style="width: 20px;"></i> Viernes 20, 18:00 - 20:00 hrs</p>
+                            <p style="margin: 5px 0; font-size: 0.9rem;"><i class="fas fa-users" style="width: 20px;"></i> <strong>Aforo esperado:</strong> 10 personas</p>
+                            <p style="margin: 5px 0; font-size: 0.9rem;"><i class="fas fa-tags" style="width: 20px;"></i> <strong>Tarifa Acordada:</strong> $500 MXN</p>
+                            <div style="margin-top: 15px; text-align: right;">
+                                <span style="font-size: 0.8rem; background: #e8f5e9; color: #27ae60; padding: 4px 10px; border-radius: 4px; font-weight: bold;"><i class="fas fa-check"></i> Pagado y Confirmado</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
